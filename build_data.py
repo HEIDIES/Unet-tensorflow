@@ -12,6 +12,7 @@ tf.flags.DEFINE_string('label_input_dir', 'data/label',
 tf.flags.DEFINE_string('output_dir', 'data/tfrecords/train.tfrecords',
                        'output directory, default: data/tfrecords/output')
 
+
 def data_reader(train_input_dir, label_input_dir, shuffle=True):
     """Read images from input_dir then shuffle them
     Args:
@@ -42,8 +43,8 @@ def data_reader(train_input_dir, label_input_dir, shuffle=True):
         train_file_paths = [train_file_paths[i] for i in shuffled_index]
         label_file_paths = [label_file_paths[i] for i in shuffled_index]
 
-
     return train_file_paths, label_file_paths
+
 
 def _int64_feature(value):
     """Wrapper for inserting int64 features into Example proto."""
@@ -51,25 +52,27 @@ def _int64_feature(value):
         value = [value]
     return tf.train.Feature(int64_list=tf.train.Int64List(value=value))
 
+
 def _bytes_feature(value):
     """Wrapper for inserting bytes features into Example proto."""
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
+
 def _convert_to_example(train_data, label_data):
     """Build an Example proto for an example.
     Args:
-        train_file_path: string, path to an image file, e.g., '/path/to/example.JPG'
-        label_file_path: string, JPEG encoding of RGB image
+        train_data: string, JPEG encoding of RGB or GRAY image
+        label_data: string, JPEG encoding of RGB or GRAY image
     Returns:
         Example proto
     """
 
-
     example = tf.train.Example(features=tf.train.Features(feature={
-        'image/train': _bytes_feature((train_data)),
-        'image/label': _bytes_feature((label_data))
+        'image/train': _bytes_feature(train_data),
+        'image/label': _bytes_feature(label_data)
         }))
     return example
+
 
 def data_writer(train_input_dir, label_input_dir, output_file):
     """Write data to tfrecords
@@ -80,7 +83,7 @@ def data_writer(train_input_dir, label_input_dir, output_file):
     output_dir = os.path.dirname(output_file)
     try:
         os.makedirs(output_dir)
-    except os.error as e:
+    except os.error:
         pass
 
     images_num = len(train_file_paths)
@@ -100,15 +103,16 @@ def data_writer(train_input_dir, label_input_dir, output_file):
         example = _convert_to_example(train_data, label_data)
         writer.write(example.SerializeToString())
 
-
         if (i + 1) % 10 == 0:
             print("Processed {}/{}.".format(i + 1, images_num))
     print("Done.")
     writer.close()
 
-def main(unused_argv):
+
+def main():
     print("Convert train and label to tfrecords...")
     data_writer(FLAGS.train_input_dir, FLAGS.label_input_dir, FLAGS.output_dir)
+
 
 if __name__ == '__main__':
     tf.app.run()

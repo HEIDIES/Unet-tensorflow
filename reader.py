@@ -3,6 +3,7 @@ import utils
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 class Reader:
     def __init__(self, tfrecords_file, image_size=256, min_queue_examples=30, batch_size=2,
                  num_threads=12, name=''):
@@ -17,7 +18,7 @@ class Reader:
     def feed(self):
         with tf.name_scope(self.name):
             filename_queue = tf.train.string_input_producer([self.tfrecords_file])
-            reader = tf.TFRecordReader()
+            # reader = tf.TFRecordReader()
 
             _, serialized_example = self.reader.read(filename_queue)
             features = tf.parse_single_example(
@@ -39,7 +40,7 @@ class Reader:
                 min_after_dequeue=self.min_queue_examples
             )
 
-            #tf.summary.image('_input', train)
+            # tf.summary.image('_input', train)
         return train, label
 
     def _preprocess(self, image):
@@ -48,14 +49,15 @@ class Reader:
         image.set_shape([self.image_size, self.image_size, 1])
         return image
 
+
 def test_reader():
     TRAIN_FILE_1 = 'data/tfrecords/train.tfrecords'
 
     with tf.Graph().as_default():
         reader1 = Reader(TRAIN_FILE_1, batch_size=1)
         image_train, image_label = reader1.feed()
-        #image_train = tf.squeeze(image_train, 0)
-        #image_label = tf.squeeze(image_label, 0)
+        # image_train = tf.squeeze(image_train, 0)
+        # image_label = tf.squeeze(image_label, 0)
 
         sess = tf.Session()
         init = tf.global_variables_initializer()
@@ -64,15 +66,13 @@ def test_reader():
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 
-
-
         try:
             step = 0
             while not coord.should_stop() and step < 1:
                 train, label = sess.run([image_train, image_label])
                 print(train.shape, label.shape)
                 f, a = plt.subplots(2, 1)
-                #for i in range(1):
+                # for i in range(1):
                 a[0].imshow(np.reshape(train, (256, 256)))
                 a[1].imshow(np.reshape(label, (256, 256)))
                 plt.show()
@@ -87,5 +87,6 @@ def test_reader():
             coord.request_stop()
             coord.join(threads)
 
+
 if __name__ == '__main__':
-  test_reader()
+    test_reader()
